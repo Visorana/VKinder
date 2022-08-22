@@ -4,9 +4,8 @@ import requests
 import vk_api
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 import threading
-import time
 import re
-import config
+import configparser
 import db
 from messages import *
 
@@ -339,12 +338,14 @@ class VkBot:
 
 
 if __name__ == '__main__':
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    group_access_token = config['VK']['GROUP_TOKEN']
+    user_access_token = config['VK']['USER_TOKEN']
+    vk = vk_api.VkApi(token=group_access_token)
+    longpoll = VkBotLongPoll(vk, config['VK']['GROUP_ID'])
+    db.create_tables()
     while True:
-        group_access_token = config.GROUP_TOKEN
-        user_access_token = config.USER_TOKEN
-        vk = vk_api.VkApi(token=group_access_token)
-        longpoll = VkBotLongPoll(vk, config.GROUP_ID)
-        db.create_tables()
         try:
             for event in longpoll.listen():
                 if event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
