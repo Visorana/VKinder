@@ -70,7 +70,10 @@ class UserPosition(Base):
 
 def create_tables():
     """Создание таблиц, если они отсутствуют."""
-    Base.metadata.create_all(engine)
+    try:
+        Base.metadata.create_all(engine)
+    except Exception as e:
+        print(e)
 
 
 def add_user(user):
@@ -80,15 +83,18 @@ def add_user(user):
     Если при попытке добавить позицию пользователя в базу данных, обнаруживается, что позиция уже есть, то она
     обновляется на номер 1.
     """
-    session.expire_on_commit = False
-    if isinstance(user, User) and session.query(User.vk_id).filter(User.vk_id == user.vk_id).first() is not None:
-        return
-    elif isinstance(user, UserPosition) and \
-            session.query(UserPosition.vk_id).filter(UserPosition.vk_id == user.vk_id).first() is not None:
-        update(user.vk_id, UserPosition, position=1)
-    else:
-        session.add(user)
-        session.commit()
+    try:
+        session.expire_on_commit = False
+        if isinstance(user, User) and session.query(User.vk_id).filter(User.vk_id == user.vk_id).first() is not None:
+            return
+        elif isinstance(user, UserPosition) and \
+                session.query(UserPosition.vk_id).filter(UserPosition.vk_id == user.vk_id).first() is not None:
+            update(user.vk_id, UserPosition, position=1)
+        else:
+            session.add(user)
+            session.commit()
+    except Exception as e:
+        print(e)
 
 
 def update(user_id, target_table, **kwargs):
@@ -99,12 +105,15 @@ def update(user_id, target_table, **kwargs):
     :param target_table: Таблица, которую нужно обновить.
     :param kwargs: Значения для обновления.
     """
-    db_user_id = get_db_id(user_id)
-    if target_table is User:
-        session.query(target_table).filter(target_table.id == db_user_id).update({**kwargs})
-    else:
-        session.query(target_table).filter(target_table.id_User == db_user_id).update({**kwargs})
-    session.commit()
+    try:
+        db_user_id = get_db_id(user_id)
+        if target_table is User:
+            session.query(target_table).filter(target_table.id == db_user_id).update({**kwargs})
+        else:
+            session.query(target_table).filter(target_table.id_User == db_user_id).update({**kwargs})
+        session.commit()
+    except Exception as e:
+        print(e)
 
 
 def delete_user(partner_id):
@@ -112,9 +121,12 @@ def delete_user(partner_id):
     :param partner_id: Идентификатор пользователя vk.
     :type partner_id: int
     """
-    session.expire_on_commit = False
-    session.query(Favorite).filter(Favorite.vk_id == partner_id).delete()
-    session.commit()
+    try:
+        session.expire_on_commit = False
+        session.query(Favorite).filter(Favorite.vk_id == partner_id).delete()
+        session.commit()
+    except Exception as e:
+        print(e)
 
 
 def view_favorites(user_id):
@@ -124,11 +136,14 @@ def view_favorites(user_id):
     :type user_id: int
     """
     links = []
-    db_user_id = get_db_id(user_id)
-    partners_query = session.query(Favorite.vk_id).filter(Favorite.id_User == db_user_id).all()
-    for link in partners_query:
-        links.append(link[0])
-    return links
+    try:
+        db_user_id = get_db_id(user_id)
+        partners_query = session.query(Favorite.vk_id).filter(Favorite.id_User == db_user_id).all()
+        for link in partners_query:
+            links.append(link[0])
+        return links
+    except Exception as e:
+        print(e)
 
 
 def avoid_list(user_id):
@@ -138,10 +153,13 @@ def avoid_list(user_id):
     :type user_id: int
     """
     links = []
-    partners_query = session.query(Partner.vk_id).filter(Partner.id_User == user_id).all()
-    for link in partners_query:
-        links.append(link[0])
-    return links
+    try:
+        partners_query = session.query(Partner.vk_id).filter(Partner.id_User == user_id).all()
+        for link in partners_query:
+            links.append(link[0])
+        return links
+    except Exception as e:
+        print(e)
 
 
 def get_position(user_id):
@@ -150,12 +168,15 @@ def get_position(user_id):
     :param user_id: Идентификатор пользователя vk.
     :type user_id: int
     """
-    position = session.query(UserPosition.position).filter(UserPosition.vk_id == user_id).first()
-    if not position:
-        return_count = 0
-    else:
-        return_count = position[0]
-    return return_count
+    try:
+        position = session.query(UserPosition.position).filter(UserPosition.vk_id == user_id).first()
+        if not position:
+            return_count = 0
+        else:
+            return_count = position[0]
+        return return_count
+    except Exception as e:
+        print(e)
 
 
 def get_offset(user_id):
@@ -164,12 +185,15 @@ def get_offset(user_id):
     :param user_id: Идентификатор пользователя vk.
     :type user_id: int
     """
-    offset = session.query(UserPosition.offset).filter(UserPosition.vk_id == user_id).first()
-    if not offset:
-        return_count = 0
-    else:
-        return_count = offset[0]
-    return return_count
+    try:
+        offset = session.query(UserPosition.offset).filter(UserPosition.vk_id == user_id).first()
+        if not offset:
+            return_count = 0
+        else:
+            return_count = offset[0]
+        return return_count
+    except Exception as e:
+        print(e)
 
 
 def get_db_id(user_id):
@@ -178,7 +202,10 @@ def get_db_id(user_id):
     :param user_id: Идентификатор пользователя vk.
     :type user_id: int
     """
-    return session.query(User.id).filter(User.vk_id == user_id).first()
+    try:
+        return session.query(User.id).filter(User.vk_id == user_id).first()
+    except Exception as e:
+        print(e)
 
 
 def get_city(user_id):
@@ -187,7 +214,10 @@ def get_city(user_id):
     :param user_id: Идентификатор пользователя vk.
     :type user_id: int
     """
-    return session.query(User.city).filter(User.vk_id == user_id).first()
+    try:
+        return session.query(User.city).filter(User.vk_id == user_id).first()
+    except Exception as e:
+        print(e)
 
 
 def get_sex(user_id):
@@ -196,7 +226,10 @@ def get_sex(user_id):
     :param user_id: Идентификатор пользователя vk.
     :type user_id: int
     """
-    return session.query(User.target_gender).filter(User.vk_id == user_id).first()
+    try:
+        return session.query(User.target_gender).filter(User.vk_id == user_id).first()
+    except Exception as e:
+        print(e)
 
 
 def get_age_from(user_id):
@@ -205,7 +238,10 @@ def get_age_from(user_id):
     :param user_id: Идентификатор пользователя vk.
     :type user_id: int
     """
-    return session.query(User.age_from).filter(User.vk_id == user_id).first()
+    try:
+        return session.query(User.age_from).filter(User.vk_id == user_id).first()
+    except Exception as e:
+        print(e)
 
 
 def get_age_to(user_id):
@@ -214,19 +250,31 @@ def get_age_to(user_id):
     :param user_id: Идентификатор пользователя vk.
     :type user_id: int
     """
-    return session.query(User.age_from).filter(User.vk_id == user_id).first()
+    try:
+        return session.query(User.age_from).filter(User.vk_id == user_id).first()
+    except Exception as e:
+        print(e)
 
 
 def get_partner_id():
     """Возвращает идентификатор vk последнего партнера в базе данных."""
-    return session.query(Partner.vk_id).order_by(Partner.id.desc()).first()
+    try:
+        return session.query(Partner.vk_id).order_by(Partner.id.desc()).first()
+    except Exception as e:
+        print(e)
 
 
 def get_partner_first_name():
     """Возвращает фамилию последнего партнера в базе данных."""
-    return session.query(Partner.first_name).order_by(Partner.id.desc()).first()
+    try:
+        return session.query(Partner.first_name).order_by(Partner.id.desc()).first()
+    except Exception as e:
+        print(e)
 
 
 def get_partner_last_name():
     """Возвращает имя последнего партнера в базе данных."""
-    return session.query(Partner.last_name).order_by(Partner.id.desc()).first()
+    try:
+        return session.query(Partner.last_name).order_by(Partner.id.desc()).first()
+    except Exception as e:
+        print(e)
